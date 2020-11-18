@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_page
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, User, Comment
+from .models import Group, Post, User, Comment, Follow
 
 @cache_page(20)
 def index(request):
@@ -89,3 +89,19 @@ def page_not_found(request, exception):
 def server_error(request):
     return render(request, "misc/500.html", status=500)
 
+@login_required
+def follow_index(request):
+    # информация о текущем пользователе доступна в переменной request.user
+    # ...
+    return render(request, "follow.html", {...})
+
+@login_required
+def profile_follow(request, username):
+    # ...
+    pass
+
+
+@login_required
+def profile_unfollow(request, username):
+    # ...
+    pass
