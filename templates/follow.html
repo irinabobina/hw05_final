@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% load cache %}
-{% block title %}Последние обновления на сайте{% endblock %}
+{% block title %}Ваша персональная лента{% endblock %}
 {% block content %}
 
-    {% include "menu.html" with index=True %}
-    <h1> Последние обновления на сайте</h1>
+    <h1>Ваша персональная лента</h1>
 
     {% cache 20 index_page %}
     {% for post in page %}
@@ -17,4 +16,3 @@
     {% endif %}
 
 {% endblock %}
-
