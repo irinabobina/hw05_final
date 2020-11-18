@@ -42,3 +42,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ("-created",)
+
+class Follow(models.Model):
+    user = models.ForeignKey(User, related_name="follower")
+    author = models.ForeignKey(User, related_name="following")
+    
