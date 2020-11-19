@@ -90,7 +90,7 @@ def server_error(request):
     return render(request, "misc/500.html", status=500)
 
 @login_required
-def follow_index(request, username):
+def follow_index(request):
     posts = Post.objects.filter(author__following__user=request.user)
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
@@ -98,7 +98,7 @@ def follow_index(request, username):
     return render(
         request, 
         'follow.html', 
-        {'page': page, 'paginator': paginator, 'username': username})
+        {'page': page, 'paginator': paginator})
 
 
 @login_required
