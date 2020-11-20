@@ -108,7 +108,7 @@ def profile_follow(request, username):
     following = author.following.exists()
     if author != user and not following:
         Follow.objects.get_or_create(user=user, author=author)
-        return redirect("profile", username)
+        #return redirect("profile", username)
     return render(request, "profile.html", {'following': following})
 
 @login_required
