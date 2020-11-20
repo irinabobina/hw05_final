@@ -109,13 +109,11 @@ def profile_follow(request, username):
     if author != user and not following:
         Follow.objects.get_or_create(user=user, author=author)
     return redirect("profile", username)
-    #return render(request, "profile.html", {'following': following})
 
 @login_required
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     user = request.user
-    get_object_or_404(Follow, user=user, author=author).delete()
-    ##if author != user:
-       # Follow.objects.get(user=user, author=author).delete()
+    if author != user:
+       Follow.objects.get(user=user, author=author).delete()
     return redirect("profile", username)
