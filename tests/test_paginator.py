@@ -36,3 +36,4 @@ class TestGroupPaginatorView:
             'Проверьте, что передали переменную `page` в контекст страницы `/`'
         assert type(response.context['page']) == Page, \
             'Проверьте, что переменная `page` на странице `/` типа `Page`'
+

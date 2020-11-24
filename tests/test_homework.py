@@ -171,3 +171,4 @@ class TestGroupView:
 
         if response.status_code != 200:
             assert False, 'Страница `/group/<slug>/` работает неправильно.'
+

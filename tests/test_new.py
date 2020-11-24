@@ -77,3 +77,4 @@ class TestNewView:
         response = user_client.post(url)
         assert response.status_code == 200, \
             'Проверьте, что на странице `/new/` выводите ошибки при неправильной заполненной формы `form`'
+

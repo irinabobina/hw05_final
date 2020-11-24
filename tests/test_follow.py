@@ -137,3 +137,5 @@ class TestFollow:
         response = self.check_url(user_client, f'/follow', '/follow/')
         assert len(response.context['page']) == 0, \
             'Проверьте, что на странице `/follow/` список статей авторов на которых подписаны'
+
+

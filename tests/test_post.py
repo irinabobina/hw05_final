@@ -137,3 +137,4 @@ class TestPostEditView:
             'Проверьте, что вы изминили пост при отправки формы на странице `/<username>/<post_id>/edit/`'
         assert response.url.startswith(f'/{post_with_group.author.username}/{post_with_group.id}'),\
             'Проверьте, что перенаправляете на страницу поста `/<username>/<post_id>/`'
+

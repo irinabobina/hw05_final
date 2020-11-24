@@ -11,6 +11,7 @@ def get_field_context(context, field_type):
     return
 
 
+
 class TestProfileView:
 
     @pytest.mark.django_db(transaction=True)
@@ -42,7 +43,7 @@ class TestProfileView:
             new_response = client.get(f'/{new_user.username}')
         except Exception as e:
             assert False, f'''Страница `/<username>/` работает неправильно. Ошибка: `{e}`'''
-        if new_response.status_code in (301, 302):
+        if new_response.status_code in (301, 302): 
             new_response = client.get(f'/{new_user.username}/')
 
         page_context = get_field_context(new_response.context, Page)
