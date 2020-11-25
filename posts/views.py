@@ -72,13 +72,13 @@ def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None) #передаём в форму наш POST-запрос
     comments = post.comments.all() #собираем комментарии, относящиеся к найденному посту, comments - related_name
     if request.method == "POST" and form.is_valid():
-        form = CommentForm(request.POST)
+        #form = CommentForm(request.POST)
         comment = form.save(commit=False)
         comment.post = post
         comment.author = request.user
         comment.save()
         return redirect("post_detail", username=post.author, post_id = post_id)
-    return render(request, "post.html", {"form": form, "post": post, "comments": comments})
+    #return render(request, "post.html", {"form": form, "post": post, "comments": comments})
 
 def page_not_found(request, exception):
     return render(
