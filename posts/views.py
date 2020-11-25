@@ -67,7 +67,8 @@ def post_edit(request, username, post_id):
 
 @login_required
 def add_comment(request, username, post_id):
-    post = get_object_or_404(Post, id=post_id) #ищем пост, id которого соответсвует нашему
+    post_author = get_object_or_404(User, username=username)
+    post = get_object_or_404(Post, id=post_id, author=post_author) #ищем пост, id которого соответсвует нашему
     form = CommentForm(request.POST or None, instance=post) #передаём в форму наш POST-запрос
     comments = post.comments.all() #собираем комментарии, относящиеся к найденному посту, comments - related_name
     if request.method == "POST" and form.is_valid():
