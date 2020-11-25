@@ -69,16 +69,14 @@ def post_edit(request, username, post_id):
 def add_comment(request, username, post_id):
     post_author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=post_id, author=post_author)
-    form = CommentForm(request.POST or None) #передаём в форму наш POST-запрос
-    comments = post.comments.all() #собираем комментарии, относящиеся к найденному посту, comments - related_name
+    form = CommentForm(request.POST or None) 
+    comments = post.comments.all() 
     if request.method == "POST" and form.is_valid():
-        #form = CommentForm(request.POST)
         comment = form.save(commit=False)
         comment.post = post
         comment.author = request.user
         comment.save()
     return redirect("post_detail", username=post.author, post_id = post_id)
-    #return render(request, "post.html", {"form": form, "post": post, "comments": comments})
 
 def page_not_found(request, exception):
     return render(
