@@ -77,7 +77,7 @@ def add_comment(request, username, post_id):
         comment.post = post
         comment.author = request.user
         comment.save()
-        return redirect("post_detail", username=post.author, post_id = post_id)
+    return redirect("post_detail", username=post.author, post_id = post_id)
     #return render(request, "post.html", {"form": form, "post": post, "comments": comments})
 
 def page_not_found(request, exception):
