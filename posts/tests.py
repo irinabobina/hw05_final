@@ -6,6 +6,7 @@ from django.test import Client
 from .fake_data import FakeData
 from .models import Post, Group
 
+#новые тесты находятся в папке tests в именованных файлах
 
 class TestMethods(TestCase):
 
