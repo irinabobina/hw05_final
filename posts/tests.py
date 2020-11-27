@@ -128,7 +128,7 @@ class TestErrorPage(DefaultSetUp):
         self.defaultSetUp()
 
     def test_404(self):
-        response = self.auth_client.get('/not-found/')
+        response = self.auth_client.get('something/really/weird/')
         self.assertEqual(response.status_code, 404)
 
     def test_cache_index(self):
