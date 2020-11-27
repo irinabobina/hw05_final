@@ -1,163 +1,209 @@
-from django.contrib.auth.models import User
-from django.shortcuts import reverse
-from django.test import TestCase
-from django.test import Client
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.core.files import File
+from django.test import TestCase, Client
+from django.urls import reverse
 
-from .fake_data import FakeData
-from .models import Post, Group
+from .models import Post, Group, Follow
 
-#новые тесты находятся в папке tests в именованных файлах
+import mock
 
-class TestMethods(TestCase):
+User = get_user_model()
 
-    fake_data = FakeData()
 
-    fake_username = fake_data.fake_username
-    fake_email = fake_data.fake_email
-    fake_password = fake_data.fake_password
-    fake_text = fake_data.fake_text
-    fake_slug = fake_data.fake_slug
-
-    def check_post_data(self, urls, text, group, author):
-
-        for url in urls:
-            response = self.client.get(reverse(url))
-            paginator = response.context.get("paginator")
-
-            if paginator is not None:
-                post = response.context["page"][0]
-            else:
-                post = response.context["post"]
-
-            self.assertEqual(post.text, text)
-            self.assertEqual(post.author, author)
-            self.assertEqual(post.group, group)
-
-    def setUp(self, fake_username=fake_username, fake_email=fake_email,
-              fake_password=fake_password, fake_slug=fake_slug):
-        self.client = Client()
+class DefaultSetUp(TestCase):
+    def defaultSetUp(self):
+        cache.clear()
+        self.auth_client = Client()
+        self.client_logout = Client()
         self.user = User.objects.create_user(
-            username=fake_username,
-            email=fake_email,
-            password=fake_password
+            username='Barney',
         )
+        self.auth_client.force_login(self.user)
         self.group = Group.objects.create(
-            slug=fake_slug,
-            title="Test group",
-            description="Test group description"
+            title='Тестовая группа',
+            slug='testgroup'
         )
+
+
+class TestPost(DefaultSetUp):
+
+    def setUp(self):
+        self.defaultSetUp()
 
     def test_profile(self):
-        """Проверка создания персональной страницы после регистрации"""
-        response = self.client.get(reverse("profile", kwargs={"username": self.fake_username}))
-        self.assertEqual(
-            response.status_code,
-            200,
-            msg="Страница не создана"
-        )
+        response = self.client_logout.get(
+            reverse('profile', kwargs=dict(username=self.user.username)))
+        self.assertEqual(response.status_code, 200)
 
-    def test_authorization_post(self):
-        """Возможность публикации авторизованным пользователем"""
-        self.client.force_login(self.user)
-        response = self.client.post(
-            reverse("new_post"),
-            {
-                "text": "text",
-                "group": self.group.id
-            },
-            follow=True
-        )
-        self.assertEqual(
-            response.status_code,
-            200,
-            msg="Публикация невозможна"
-        )
+    def test_new_post(self):
+        response = self.auth_client.post(reverse('new_post'),
+                                         data={'text': 'post for test'})
+        self.assertEqual(response.status_code, 302)
+        response = self.auth_client.get(reverse('index'))
+        self.assertContains(response, 'post for test', status_code=200)
+
+    def test_new_post_logout(self):
+        response = self.client_logout.post(reverse('new_post'),
+                                           data={'text': 'text for test'})
+        posts = Post.objects.all()
+        for post in posts:
+            self.assertNotEqual(post.text, 'text for test')
+        self.assertRedirects(response, '/auth/login/?next=/new/', 302)
+
+    def test_post_published(self):
+        image = mock.MagicMock(spec=File)
+        image.name = 'test_image.jpg'
+        post = Post.objects.create(text='test text', author=self.user,
+                                   group=self.group,
+                                   image=image)
         self.assertEqual(Post.objects.count(), 1)
-        last_post = Post.objects.first()
-        self.assertEqual(last_post.text, "text")
-        self.assertEqual(last_post.author, self.user)
-        self.assertEqual(last_post.group, self.group)
+        self.check_all_page(post.id, post.text, post.author, post.group)
 
-    def test_non_authorization_post(self):
-        """Невозможность публикации неавторизованным пользователем
-        (проверка редиректа)"""
-        response = self.client.post(
-            reverse("new_post"),
-            {
-                "text": "text",
-                "group": self.group.id
+    def test_post_edit(self):
+        image = mock.MagicMock(spec=File)
+        image.name = 'test_image_p.jpg'
+        post = Post.objects.create(text='test text', author=self.user,
+                                   group=self.group, image=image)
+        edit_text = 'edit test text'
+        post_id = post.id
+        new_group = Group.objects.create(
+            title='Рафаелло',
+            slug='rafaello'
+        )
+        self.auth_client.post(
+            reverse(
+                'post_edit',
+                kwargs={
+                    'username': self.user.username,
+                    'post_id': post_id,
+                }
+            ),
+            data={'group': new_group.id, 'text': edit_text}
+        )
+
+    def test_load_not_image(self):
+        image = mock.MagicMock(spec=File)
+        image.name = 'test_image_p.doc'
+        response = self.auth_client.post(
+            reverse(
+                'new_post',
+            ),
+            data={'group': self.group.id, 'text': 'text',
+                  'author': self.auth_client, 'image': image}, follow=True
+        )
+        posts_count = Post.objects.count()
+        self.assertFormError(
+            response, form='form', field='image',
+            errors='Загрузите правильное изображение. '
+                   'Файл, который вы загрузили, поврежден'
+                   ' или не является изображением.'
+        )
+        self.assertEqual(posts_count, 0)
+
+    def check_all_page(self, post_id, text, author, group):
+        for url in (
+                reverse('index'),
+                reverse('profile', kwargs={'username': self.user.username}),
+                reverse('post', kwargs={
+                    'username': self.user.username,
+                    'post_id': post_id,
+                }),
+        ):
+            with self.subTest(url=url):
+                response = self.auth_client.get(url)
+                self.assertContains(response, 'img')
+                if 'paginator' in response.context:
+                    posts = response.context['paginator'].object_list[0]
+                    self.assertEqual(Post.objects.count(), 1)
+                else:
+                    posts = response.context['post']
+                self.assertEqual(posts.text, text)
+                self.assertEqual(posts.author, author)
+                self.assertEqual(posts.group, group)
+
+
+class TestErrorPage(DefaultSetUp):
+    def setUp(self):
+        self.defaultSetUp()
+
+    def test_404(self):
+        response = self.auth_client.get('/not-found/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_cache_index(self):
+        response = self.auth_client.get(reverse('index'))
+        self.auth_client.post(
+            reverse('new_post'),
+            data={
+                'text': 'cache test',
+                'group': self.group.id
+            }
+        )
+        self.assertNotContains(response, 'cache test')
+
+
+class TestFollow(DefaultSetUp):
+    def setUp(self):
+        self.defaultSetUp()
+        self.other_user = User.objects.create_user(
+            username='Lola',
+        )
+
+    def test_follow(self):
+        before_follow = Follow.objects.count()
+        Follow.objects.create(
+            user=User.objects.get(
+                username=self.user),
+            author=User.objects.get(
+                username=self.other_user.username))
+        after_follow = Follow.objects.count()
+        self.assertEqual(before_follow + 1, after_follow)
+
+    def test_unfollow(self):
+        before_follow = Follow.objects.count()
+        Follow.objects.create(
+            user=User.objects.get(
+                username=self.user),
+            author=User.objects.get(
+                username=self.other_user.username))
+        follow = Follow.objects.count()
+        self.assertEqual(before_follow + 1, follow)
+        Follow.objects.filter(
+            user=User.objects.get(
+                username=self.user),
+            author=User.objects.get(
+                username=self.other_user.username)).delete()
+        after_unfollow = Follow.objects.count()
+        self.assertEqual(before_follow, after_unfollow)
+
+    def test_post_following(self):
+        Post.objects.create(text='Follower text', author=self.other_user)
+        response = self.auth_client.get(reverse('follow_index'), follow=True)
+        self.assertNotContains(response, 'Follower text')
+        self.auth_client.post(
+            reverse('profile_follow',
+                    kwargs={
+                        'username': self.other_user,
+                    }),
+        )
+        response = self.auth_client.get(reverse('follow_index'), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Follower text')
+
+    def test_add_comment_logout(self):
+        post = Post.objects.create(text='Follower text',
+                                   author=self.other_user)
+        response = self.client_logout.post(
+            reverse('add_comment',
+                    kwargs={
+                        'username': self.other_user,
+                        'post_id': post.id
+                    }),
+            data={
+                'text': 'comment test',
             },
             follow=True
         )
-        self.assertRedirects(response, "/auth/login/?next=/new/", 302, 200)
-        self.assertFalse(Post.objects.exists())
-
-    def test_disp_post(self, fake_text=fake_text):
-        """После публикации поста новая запись появляется на главной странице
-        сайта (index), на персональной странице пользователя (profile),
-        и на отдельной странице поста (post)"""
-        self.post = Post.objects.create(
-            text=fake_text,
-            author=self.user,
-            group=self.group
-        )
-        urls = (
-            reverse("index"),
-            reverse("profile",  kwargs={"username": self.user.username}),
-            reverse("post",  kwargs={"username": self.user.username, "post_id": self.post.id})
-        )
-        text = self.post.text
-        group = self.group
-        author = self.post.author
-        self.check_post_data(urls, text, group, author)
-
-    def test_update_post(self, fake_text=fake_text):
-        """Возможность редактирования поста авторизованным пользователем,
-        проверка изменений на всех страницах"""
-        self.post = Post.objects.create(
-            text=fake_text,
-            author=self.user,
-            group=self.group
-        )
-        self.client.force_login(self.user)
-        self.client.post(
-            reverse(
-                "post_edit",
-                kwargs={
-                    "username": self.user.username,
-                    "post_id": self.post.id}
-            ),
-            {
-                "text": f"Update {fake_text}",
-                "group": ""
-            },
-            follow=True)
-        urls = (
-            reverse("index"),
-            reverse("profile", kwargs={"username": self.user.username}),
-            reverse("post",  kwargs={"username": self.user.username, "post_id": self.post.id})
-        )
-        self.post = Post.objects.last()
-        text = self.post.text
-        group = self.post.group
-        author = self.post.author
-        self.check_post_data(urls, text, group, author)
-
-    def tearDown(self, fake_username=fake_username, fake_text=fake_text,
-                 fake_email=fake_email, fake_password=fake_password,
-                 fake_slug=fake_slug):
-        User.objects.filter(
-            username=fake_username,
-            email=fake_email,
-            password=fake_password
-        ).delete()
-
-        Post.objects.filter(
-            text=fake_text,
-            group=self.group,
-            author=self.user
-        ).delete()
-
-        Group.objects.filter(
-            slug=fake_slug
-        ).delete()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'comment test')
