@@ -115,5 +115,6 @@ def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     user = request.user
     if author != user:
-       Follow.objects.get(user=user, author=author).delete()
+       to_delete = Follow.objects.get_object_or_404(User, user=user, author=author)
+       to_delete.delete()
     return redirect("profile", username)
