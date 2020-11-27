@@ -100,7 +100,6 @@ def follow_index(request):
         'follow.html', 
         {'page': page, 'paginator': paginator})
 
-
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
