@@ -68,8 +68,8 @@ class TestPost(DefaultSetUp):
         edit_text = 'edit test text'
         post_id = post.id
         new_group = Group.objects.create(
-            title='Рафаелло',
-            slug='rafaello'
+            title='Матрёшка',
+            slug='matreshka'
         )
         self.auth_client.post(
             reverse(
