@@ -62,10 +62,11 @@ def post_view(request, username, post_id):
 def post_edit(request, username, post_id):
     user = get_object_or_404(User, username=username)
     if request.user != user:
-        return redirect("post_detail", username=username, 
+        return redirect("post_detail", username=username,
                         post_id=post_id)
     post = get_object_or_404(Post, pk=post_id, author__username=username)
-    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
+    form = PostForm(request.POST or None, files=request.FILES or None,
+                    instance=post)
     if form.is_valid():
         form.save()
         return redirect("post_detail", username=username, post_id=post.pk)
