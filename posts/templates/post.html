@@ -7,14 +7,14 @@
     <main role="main" class="container">
         <div class="row">
             <div class="col-md-3 mb-3 mt-1">
-                {% include "author_card.html" %}
+                {% include "includes/author_card.html" %}
             </div>
             <div
                 class="col-md-9">
 
                 <!-- Пост -->
-                {% include "post_item.html" with post=post %}
-                {% include "comments.html" %}
+                {% include "includes/post_item.html" with post=post %}
+                {% include "includes/comments.html" %}
             </div>
         </div>
     </main>
