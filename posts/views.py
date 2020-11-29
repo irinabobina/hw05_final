@@ -77,20 +77,21 @@ def post_edit(request, username, post_id):
 def add_comment(request, username, post_id):
     post_author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=post_id, author=post_author)
-    form = CommentForm(request.POST or None) 
-    comments = post.comments.all() 
+    form = CommentForm(request.POST or None)
+    comments = post.comments.all()
     if request.method == "POST" and form.is_valid():
         comment = form.save(commit=False)
         comment.post = post
         comment.author = request.user
         comment.save()
-    return redirect("post_detail", username=post.author, post_id = post_id)
+    return redirect("post_detail", username=post.author, post_id=post_id)
+
 
 def page_not_found(request, exception):
     return render(
-        request, 
-        "misc/404.html", 
-        {"path": request.path}, 
+        request,
+        "misc/404.html",
+        {"path": request.path},
         status=404
     )
 
