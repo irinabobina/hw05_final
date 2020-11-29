@@ -158,7 +158,7 @@ class TestFollow(DefaultSetUp):
         self.post = Post.objects.create(text="Test post", author=self.user3)
 
 
-     def test_follow_unfollow(self):
+    def test_follow_unfollow(self):
         self.client.login(username="fortest1", password="qwerty123")
         self.client.get('/fortest2/follow')
         response = self.client.get('/fortest1/')
