@@ -145,37 +145,28 @@ class TestErrorPage(DefaultSetUp):
 
 class TestFollow(DefaultSetUp):
     def setUp(self):
-        self.defaultSetUp()
-        self.other_user = User.objects.create_user(
-            username='Lola',
-        )
+        self.client = Client()
+        self.user = User.objects.create_user(
+                        username="fortest1", password="qwerty123"
+                )
+        self.user2 = User.objects.create_user(
+                        username="fortest2", password="321654"
+                )
+        self.user3 = User.objects.create_user(
+                        username="TestUser3", password="987654"
+                )
+        self.post = Post.objects.create(text="Test post", author=self.user3)
 
-    def test_follow(self):
-        before_follow = Follow.objects.count()
-        Follow.objects.create(
-            user=User.objects.get(
-                username=self.user),
-            author=User.objects.get(
-                username=self.other_user.username))
-        after_follow = Follow.objects.count()
-        self.assertEqual(before_follow + 1, after_follow)
 
-    def test_unfollow(self):
-        before_follow = Follow.objects.count()
-        Follow.objects.create(
-            user=User.objects.get(
-                username=self.user),
-            author=User.objects.get(
-                username=self.other_user.username))
-        follow = Follow.objects.count()
-        self.assertEqual(before_follow + 1, follow)
-        Follow.objects.filter(
-            user=User.objects.get(
-                username=self.user),
-            author=User.objects.get(
-                username=self.other_user.username)).delete()
-        after_unfollow = Follow.objects.count()
-        self.assertEqual(before_follow, after_unfollow)
+     def test_follow_unfollow(self):
+        self.client.login(username="fortest1", password="qwerty123")
+        self.client.get('/fortest2/follow')
+        response = self.client.get('/fortest1/')
+        self.assertEqual(response.status_code, 200)
+        self.client.get('/fortest2/unfollow')
+        response = self.client.get('/fortest1/')
+        self.assertEqual(response.status_code, 200)
+    
 
     def test_post_following(self):
         Post.objects.create(text='Follower text', author=self.other_user)
