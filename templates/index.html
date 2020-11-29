@@ -13,7 +13,7 @@
     {% endcache %}
 
     {% if page.has_other_pages %}
-        {% include "paginator.html" with items=page paginator=paginator %}
+        {% include "includes/paginator.html" with items=page paginator=paginator %}
     {% endif %}
 
 {% endblock %}
