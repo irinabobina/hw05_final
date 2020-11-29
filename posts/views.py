@@ -37,6 +37,7 @@ def new_post(request):
         return redirect("index")
     return render(request, "new_post.html", {"form": form})
 
+
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     post_list = author.posts.all()
@@ -45,14 +46,16 @@ def profile(request, username):
     page = paginator.get_page(page_number)
     following = author.following.exists()
     return render(request, "profile.html",
-                  {"page": page, "paginator": paginator, "author": author, 'following': following})
+                  {"page": page, "paginator": paginator, 
+                   "author": author, 'following': following})
 
 def post_view(request, username, post_id): 
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(author.posts.all(), pk=post_id)
     form = CommentForm()
     comments = post.comments.all()
-    return render(request, "post.html", {"post": post, "author": author, "form": form, "comments": comments})
+    return render(request, "post.html", {"post": post, 
+                  "author": author, "form": form, "comments": comments})
 
 def post_edit(request, username, post_id):
     user = get_object_or_404(User, username=username)
