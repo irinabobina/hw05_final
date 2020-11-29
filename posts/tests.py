@@ -157,7 +157,6 @@ class TestFollow(DefaultSetUp):
                 )
         self.post = Post.objects.create(text="Test post", author=self.user3)
 
-
     def test_follow_unfollow(self):
         self.client.login(username="fortest1", password="qwerty123")
         self.client.get('/fortest2/follow')
@@ -166,7 +165,6 @@ class TestFollow(DefaultSetUp):
         self.client.get('/fortest2/unfollow')
         response = self.client.get('/fortest1/')
         self.assertEqual(response.status_code, 200)
-    
 
     def test_post_following(self):
         Post.objects.create(text='Follower text', author=self.other_user)
