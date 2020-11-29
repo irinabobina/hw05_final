@@ -46,27 +46,31 @@ def profile(request, username):
     page = paginator.get_page(page_number)
     following = author.following.exists()
     return render(request, "profile.html",
-                  {"page": page, "paginator": paginator, 
+                  {"page": page, "paginator": paginator,
                    "author": author, 'following': following})
 
-def post_view(request, username, post_id): 
+
+def post_view(request, username, post_id):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(author.posts.all(), pk=post_id)
     form = CommentForm()
     comments = post.comments.all()
-    return render(request, "post.html", {"post": post, 
+    return render(request, "post.html", {"post": post,
                   "author": author, "form": form, "comments": comments})
+
 
 def post_edit(request, username, post_id):
     user = get_object_or_404(User, username=username)
     if request.user != user:
-        return redirect("post_detail", username=username, post_id=post_id)
+        return redirect("post_detail", username=username, 
+                        post_id=post_id)
     post = get_object_or_404(Post, pk=post_id, author__username=username)
     form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
     if form.is_valid():
         form.save()
         return redirect("post_detail", username=username, post_id=post.pk)
     return render(request, "new_post.html", {"form": form, "post": post})
+
 
 @login_required
 def add_comment(request, username, post_id):
