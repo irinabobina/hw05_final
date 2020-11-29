@@ -95,8 +95,10 @@ def page_not_found(request, exception):
         status=404
     )
 
+
 def server_error(request):
     return render(request, "misc/500.html", status=500)
+
 
 @login_required
 def follow_index(request):
@@ -105,17 +107,19 @@ def follow_index(request):
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(
-        request, 
-        'follow.html', 
+        request,
+        'follow.html',
         {'page': page, 'paginator': paginator})
+
 
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     user = request.user
-    if author != user: 
+    if author != user:
         Follow.objects.get_or_create(user=user, author=author)
     return redirect("profile", username)
+
 
 @login_required
 def profile_unfollow(request, username):
