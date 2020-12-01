@@ -162,16 +162,16 @@ class TestFollow(DefaultSetUp):
         )
 
     def test_follow(self):
-        self.client.login(username="fortest1", password="qwerty123")
-        self.client.get('/fortest2/follow')
-        response = self.client.get('/fortest1/')
-        self.assertEqual(response.status_code, 200)
- 
+        self.client.login(username="fortest1", password="qwerty123") 
+        self.client.get(reverse('posts:profile_follow', username="fortest1")) 
+        response = self.client.get('/fortest1/') 
+        self.assertEqual(response.status_code, 200) 
+    
     def test_unfollow(self):
-        self.client.login(username="fortest1", password="qwerty123")
-        self.client.get('/fortest2/unfollow')
-        response = self.client.get('/fortest1/')
-        self.assertEqual(response.status_code, 200)
+        self.client.login(username="fortest1", password="qwerty123") 
+        self.client.get(reverse('posts:profile_unfollow', username="fortest1")) 
+        response = self.client.get('/fortest1/') 
+        self.assertEqual(response.status_code, 200) 
 
     def test_post_following(self):
         Post.objects.create(text='Follower text', author=self.other_user)
