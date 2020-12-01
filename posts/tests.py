@@ -161,7 +161,7 @@ class TestFollow(DefaultSetUp):
             username='Lola', 
         )
 
-    def test_follow_unfollow(self):
+    def test_follow(self):
         self.client.login(username="fortest1", password="qwerty123")
         self.client.get('/fortest2/follow')
         response = self.client.get('/fortest1/')
