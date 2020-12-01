@@ -27,7 +27,7 @@
         {{ group.description }}
     </p>
     {% for post in page %}
-        {% include "includes/post_item.html" with post=post %}
+        {% include "posts/includes/post_item.html" with post=post %}
     {% endfor %}
     {% if page.has_other_pages %}
         {% include "includes/paginator.html" with items=page paginator=paginator %}
