@@ -24,7 +24,7 @@ def group_posts(request, slug):
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     context = {"group": group, "page": page, "paginator": paginator}
-    return render(request, "group.html", context)
+    return render(request, "posts/group.html", context)
 
 
 @login_required
@@ -35,7 +35,7 @@ def new_post(request):
         post.author = request.user
         post.save()
         return redirect("index")
-    return render(request, "new_post.html", {"form": form})
+    return render(request, "posts/new_post.html", {"form": form})
 
 
 def profile(request, username):
@@ -55,7 +55,7 @@ def post_view(request, username, post_id):
     post = get_object_or_404(author.posts.all(), pk=post_id)
     form = CommentForm()
     comments = post.comments.all()
-    return render(request, "post.html", {"post": post,
+    return render(request, "posts/post.html", {"post": post,
                   "author": author, "form": form, "comments": comments})
 
 
@@ -70,7 +70,7 @@ def post_edit(request, username, post_id):
     if form.is_valid():
         form.save()
         return redirect("post_detail", username=username, post_id=post.pk)
-    return render(request, "new_post.html", {"form": form, "post": post})
+    return render(request, "posts/new_post.html", {"form": form, "post": post})
 
 
 @login_required
