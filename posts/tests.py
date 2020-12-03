@@ -155,35 +155,24 @@ class TestErrorPage(DefaultSetUp):
 
 class TestFollow(DefaultSetUp):
     def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-                        username="fortest1", password="qwerty123"
-                )
-        self.user2 = User.objects.create_user(
-                        username="fortest2", password="321654"
-                )
-        self.user3 = User.objects.create_user(
-                        username="TestUser3", password="987654"
-                )
-        self.post = Post.objects.create(text="Test post", author=self.user3)
-                self.defaultSetUp()
+        self.defaultSetUp()
         self.other_user = User.objects.create_user( 
             username='Lola', 
         )
 
     def test_follow(self):
-        self.client.force_login(self.user11) 
-        self.post = Post.objects.create(text='Test subscribe', author=self.user21)
-        response = self.client.get(reverse('posts:profile_follow', username=self.user21))
-        self.assertRedirects(response, f'/{self.user21}/', status_code=302)
-        response = Follow.objects.filter(user=self.user11).exists()
+        self.client.force_login(self.user) 
+        self.post = Post.objects.create(text='Test subscribe', author=self.other_user)
+        response = self.client.get(reverse('posts:profile_follow', username=self.other_user))
+        self.assertRedirects(response, f'/{self.other_user}/', status_code=302)
+        response = Follow.objects.filter(user=self.user).exists()
         self.assertTrue(response)
     
     def test_unfollow(self):
         self.client.force_login(self.user)
-        response =  self.client.get(reverse('posts:profile_unfollow', username=self.user21))
-        self.assertRedirects(response, f'/{self.user21}/', status_code=302)
-        response = Follow.objects.filter(user=self.user11).exists()
+        response = self.client.get(reverse('posts:profile_unfollow', username=self.other_user))
+        self.assertRedirects(response, f'/{self.other_user}/', status_code=302)
+        response = Follow.objects.filter(user=self.user).exists()
         self.assertFalse(response)
 
     def test_post_following(self):
