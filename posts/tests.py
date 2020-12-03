@@ -19,6 +19,16 @@ class DefaultSetUp(TestCase):
         self.user = User.objects.create_user(
             username='Barney',
         )
+        self.user11 = User.objects.create_user(
+            username='testfollower',
+            email='testfollower@test.ru',
+            password='testpass1'
+        )
+        self.user21 = User.objects.create_user(
+            username='testfollowing',
+            email='testfollowing@test.ru',
+            password='testpass2'
+        )
         self.auth_client.force_login(self.user)
         self.group = Group.objects.create(
             title='Тестовая группа',
@@ -162,16 +172,19 @@ class TestFollow(DefaultSetUp):
         )
 
     def test_follow(self):
-        self.client.login(username="fortest1", password="qwerty123") 
-        self.client.get(reverse('posts:profile_follow', username="fortest1")) 
-        response = self.client.get('/fortest1/') 
-        self.assertEqual(response.status_code, 200) 
+        self.client.force_login(self.user11) 
+        self.post = Post.objects.create(text='Test subscribe', author=self.user21)
+        response = self.client.get(reverse('posts:profile_follow', username=self.user21))
+        self.assertRedirects(response, f'/{self.user21}/', status_code=302)
+        response = Follow.objects.filter(user=self.user11).exists()
+        self.assertTrue(response)
     
     def test_unfollow(self):
-        self.client.login(username="fortest1", password="qwerty123") 
-        self.client.get(reverse('posts:profile_unfollow', username="fortest1")) 
-        response = self.client.get('/fortest1/') 
-        self.assertEqual(response.status_code, 200) 
+        self.client.force_login(self.user)
+        response =  self.client.get(reverse('posts:profile_unfollow', username=self.user21))
+        self.assertRedirects(response, f'/{self.user21}/', status_code=302)
+        response = Follow.objects.filter(user=self.user11).exists()
+        self.assertFalse(response)
 
     def test_post_following(self):
         Post.objects.create(text='Follower text', author=self.other_user)
