@@ -19,16 +19,6 @@ class DefaultSetUp(TestCase):
         self.user = User.objects.create_user(
             username='Barney',
         )
-        self.user11 = User.objects.create_user(
-            username='testfollower',
-            email='testfollower@test.ru',
-            password='testpass1'
-        )
-        self.user21 = User.objects.create_user(
-            username='testfollowing',
-            email='testfollowing@test.ru',
-            password='testpass2'
-        )
         self.auth_client.force_login(self.user)
         self.group = Group.objects.create(
             title='Тестовая группа',
