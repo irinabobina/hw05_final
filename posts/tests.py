@@ -153,14 +153,14 @@ class TestFollow(DefaultSetUp):
     def test_follow(self):
         self.client.force_login(self.user) 
         self.post = Post.objects.create(text='Test subscribe', author=self.other_user)
-        response = self.client.get(reverse('posts:profile_follow', username=self.other_user))
+        response = self.client.get(reverse('posts:profile_follow'), username=self.other_user)
         self.assertRedirects(response, f'/{self.other_user}/', status_code=302)
         response = Follow.objects.filter(user=self.user).exists()
         self.assertTrue(response)
     
     def test_unfollow(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse('posts:profile_unfollow', username=self.other_user))
+        response = self.client.get(reverse('posts:profile_unfollow'), username=self.other_user)
         self.assertRedirects(response, f'/{self.other_user}/', status_code=302)
         response = Follow.objects.filter(user=self.user).exists()
         self.assertFalse(response)
